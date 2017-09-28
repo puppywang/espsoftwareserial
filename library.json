@@ -8,7 +8,7 @@
     "repository":
     {
         "type": "git",
-        "url": "https://github.com/plerup/espsoftwareserial"
+        "url": "https://github.com/puppywang/espsoftwareserial"
     },
     "frameworks": "arduino",
     "platforms": "espressif8266"
