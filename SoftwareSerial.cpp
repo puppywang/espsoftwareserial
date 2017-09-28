@@ -72,6 +72,7 @@ SoftwareSerial::SoftwareSerial(int receivePin, int transmitPin, bool inverse_log
    m_invert = inverse_logic;
    m_overflow = false;
    m_rxEnabled = false;
+   m_singleLine = (receivePin == transmitPin);
    if (isValidGPIOpin(receivePin)) {
       m_rxPin = receivePin;
       m_buffSize = buffSize;
@@ -87,8 +88,10 @@ SoftwareSerial::SoftwareSerial(int receivePin, int transmitPin, bool inverse_log
    if (isValidGPIOpin(transmitPin)) {
       m_txValid = true;
       m_txPin = transmitPin;
-      pinMode(m_txPin, OUTPUT);
-      digitalWrite(m_txPin, !m_invert);
+      if (!m_singleLine || !m_rxValid) {
+         pinMode(m_txPin, OUTPUT);
+         digitalWrite(m_txPin, !m_invert);
+      }
    }
    // Default speed
    begin(9600);
@@ -159,6 +162,15 @@ size_t SoftwareSerial::write(uint8_t b) {
    if (!m_txValid) return 0;
 
    if (m_invert) b = ~b;
+   bool lastRxEnabled = m_rxEnabled;
+   if (m_singleLine) {
+      if (lastRxEnabled)
+         enableRx(false);
+      if (m_rxValid) {
+         pinMode(m_txPin, OUTPUT);
+         digitalWrite(m_txPin, !m_invert);
+      }
+   }
    // Disable interrupts in order to get a clean transmit
    cli();
    if (m_txEnableValid) digitalWrite(m_txEnablePin, HIGH);
@@ -178,6 +190,12 @@ size_t SoftwareSerial::write(uint8_t b) {
    WAIT;
    if (m_txEnableValid) digitalWrite(m_txEnablePin, LOW);
    sei();
+   if (m_singleLine) {
+      if (m_rxValid)
+         pinMode(m_rxPin, INPUT);
+      if (lastRxEnabled)
+         enableRx(true);
+   }
    return 1;
 }
 

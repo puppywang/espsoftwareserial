@@ -71,6 +71,7 @@ private:
    int m_rxPin, m_txPin, m_txEnablePin;
    bool m_rxValid, m_rxEnabled;
    bool m_txValid, m_txEnableValid;
+   bool m_singleLine;
    bool m_invert;
    bool m_overflow;
    unsigned long m_bitTime;
